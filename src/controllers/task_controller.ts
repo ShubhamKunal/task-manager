@@ -22,22 +22,24 @@ const getTasks = async function (req: Request, res: Response) {
   }
 };
 const createTask = async function (req: Request, res: Response) {
-  const { error, value } = taskSchema.validate(req.body, {
+  const { error } = taskSchema.validate(req.body, {
     abortEarly: false,
   });
   if (error) {
     console.error("Validation error:", error.details);
-    return res.status(400).json({ status: "error",
-        message: "Validation Error",
-        error: error.details, });
+    return res.status(400).json({
+      status: "error",
+      message: "Validation Error",
+      error: error.details,
+    });
   }
   try {
     const task = req.body;
     const savedTask = await services.createTask(task);
-     res.status(201).json({
-        status: "success",
-        message: "Task saved successfully",
-        data: savedTask,
+    res.status(201).json({
+      status: "success",
+      message: "Task saved successfully",
+      data: savedTask,
     });
   } catch (err) {
     console.error("Error saving task:", err);
@@ -72,9 +74,13 @@ const updateTaskbyId = async function (req: Request, res: Response) {
   });
   if (error) {
     console.error("Validation error:", error.details);
-    return res.status(400).json({ status: "error",
+    return res
+      .status(400)
+      .json({
+        status: "error",
         message: "Validation Error",
-        error: error.details, });
+        error: error.details,
+      });
   }
   try {
     const taskId = parseInt(req.params.id, 10);
@@ -85,7 +91,7 @@ const updateTaskbyId = async function (req: Request, res: Response) {
         status: "success",
         message: "Task updated successfully",
         data: updatedTask,
-    });
+      });
     } else {
       res.status(404).json({ status: "error", error: "Task not found" });
     }
@@ -101,14 +107,24 @@ const updateTaskbyId = async function (req: Request, res: Response) {
 const deleteTaskById = async function (req: Request, res: Response) {
   try {
     const taskId = parseInt(req.params.id, 10);
-    await services.deleteTaskById(taskId);
-    res.status(200).json({
+    const deleted = await services.deleteTaskById(taskId);
+    if (deleted === 0) {
+      return res.status(404).json({ status: "error", error: "Task not found" });
+    } else if (deleted === 1) {
+      console.log(`Task with ID ${taskId} deleted successfully.`);
+      res.status(200).json({
         status: "success",
         message: `Task of taskId ${taskId} deleted successfully`,
-    });
+      });
+    } else {
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
   } catch (err) {
-    console.error("Error deleting task:", err);
-    res.status(500).json({
+    console.error("Error deleting task:");
+    return res.status(500).json({
       status: "error",
       message: "Internal Server Error",
       error: err,
@@ -124,7 +140,7 @@ const patchTaskAsCompleted = async function (req: Request, res: Response) {
         status: "success",
         message: `Task ${taskId} marked as complete`,
         data: updatedTask,
-    });
+      });
     } else {
       res.status(404).json({ status: "error", error: "Task not found" });
     }

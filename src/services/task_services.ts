@@ -59,15 +59,16 @@ const updateTaskbyId = async (taskId: number, task: ObjectLiteral): Promise<Obje
         throw new Error('Internal Server Error');
     }
 };
-const deleteTaskById = async (taskId: number): Promise<void> => {
+const deleteTaskById = async (taskId: number): Promise<number> => {
     try {
         const result = await dataSource.getRepository('Task').delete(taskId);
         if (result.affected === 0) {
-            throw new Error('Task not found');
+            return 0; 
         }
+        return 1; 
     } catch (err) {
         console.error('Error deleting task:', err);
-        throw new Error('Internal Server Error');
+        return -1;
     }
 }
 const patchTaskAsCompleted = async (taskId: number): Promise<ObjectLiteral | null> => {
